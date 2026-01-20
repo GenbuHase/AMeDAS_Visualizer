@@ -4,10 +4,10 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>アメダス積雪マップ</title>
-  <meta name="version" content="1.0.0-beta.2" />
+  <meta name="version" content="1.0.0-beta.3" />
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous"></script>
@@ -19,10 +19,12 @@
   <style>
     body,
     html {
+      width: 100%;
       height: 100%;
       margin: 0;
       padding: 0;
       font-family: "Noto Sans JP", sans-serif;
+      overflow: hidden; /* スマホでのバウンス防止 */
     }
 
     #map {
@@ -31,6 +33,7 @@
       z-index: 1;
     }
 
+    /* パネルのz-index設定 */
     .info-panel {
       z-index: 1000;
     }
@@ -43,10 +46,7 @@
     .panel-body {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(4px);
-      max-height: 80vh;
-      /* 画面からはみ出さないように制限 */
-      overflow-y: auto;
-      /* コンテンツが多い場合はスクロール */
+      /* 高さ制限はTailwindクラスで行うため削除 */
     }
 
     .legend-item {
@@ -78,38 +78,43 @@
 
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
-      width: 8px;
+      width: 6px;
     }
 
     ::-webkit-scrollbar-track {
-      background: #f1f1f1;
+      background: transparent;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 4px;
+      background: #bbb;
+      border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #555;
+      background: #999;
     }
   </style>
 </head>
 
 <body>
-  <!-- オーバーレイ -->
-  <aside class="absolute top-4 left-4 info-panel rounded-lg shadow-lg max-w-sm w-full overflow-hidden transition-all duration-300">
+  <!--
+    オーバーレイ
+
+    スマホ: top-4 left-4 right-4 (幅いっぱい-余白)
+    PC(md以上): w-96 (固定幅)
+  -->
+  <aside id="info-panel" class="absolute top-4 left-4 right-4 md:right-auto md:w-96 info-panel rounded-lg shadow-xl overflow-hidden transition-all duration-300 flex flex-col max-h-[calc(100dvh-2rem)]">
     <!-- パネルヘッダー -->
-    <header class="panel-header p-4 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors" onclick="togglePanel()">
+    <header class="panel-header p-4 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors flex-none" onclick="togglePanel()">
       <h1 class="text-xl font-bold text-gray-800 m-0">⛄ アメダス積雪マップ</h1>
 
-      <button id="panel-toggle-icon" class="text-gray-500 hover:text-gray-700 font-bold transform transition-transform duration-300">
+      <button id="panel-toggle-icon" class="text-gray-500 hover:text-gray-700 font-bold transform transition-transform duration-300 p-1">
         ▼
       </button>
     </header>
 
     <!-- パネルコンテンツ -->
-    <article id="panel-body" class="panel-body p-4 pt-2">
+    <article id="panel-body" class="panel-body p-4 pt-2 flex-1 overflow-y-auto overscroll-contain">
       <!-- ビュー切り替えタブ -->
       <div class="flex border-b border-gray-200">
         <div id="tab-all" onclick="event.stopPropagation(); switchMode(false)" class="flex-1 py-2 text-sm font-bold text-center cursor-pointer transition-colors border-b-2 border-blue-600 text-blue-600">📌 すべての地点</div>
@@ -175,7 +180,8 @@
     ];
 
     // --- マップ初期化 ---
-    const map = L.map('map').setView(MAP_CENTER, MAP_ZOOM);
+    const map = L.map('map', { zoomControl: false }).setView(MAP_CENTER, MAP_ZOOM);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     // 地理院地図 (淡色地図)
     L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
@@ -206,13 +212,18 @@
     function togglePanel() {
       const body = document.getElementById('panel-body');
       const icon = document.getElementById('panel-toggle-icon');
+      const panel = document.getElementById('info-panel');
 
       if (body.style.display === 'none') {
         body.style.display = 'block';
         icon.style.transform = 'rotate(0deg)'; // 元に戻す
+        // 開いたときは高さ制限を復活させる
+        panel.style.height = 'auto'; 
       } else {
         body.style.display = 'none';
-        icon.style.transform = 'rotate(-90deg)'; // 横向きにするなど
+        icon.style.transform = 'rotate(-90deg)'; // 横向きにする
+        // 閉じたときはヘッダーの高さだけにする
+        panel.style.height = 'auto';
       }
     }
 
