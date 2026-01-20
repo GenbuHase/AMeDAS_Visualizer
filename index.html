@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>アメダス積雪マップ</title>
-  <meta name="version" content="1.0.0-beta.3" />
+  <meta name="version" content="1.0.0-beta.4" />
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous"></script>
@@ -97,12 +97,7 @@
 </head>
 
 <body>
-  <!--
-    オーバーレイ
-
-    スマホ: top-4 left-4 right-4 (幅いっぱい-余白)
-    PC(md以上): w-96 (固定幅)
-  -->
+  <!-- オーバーレイ -->
   <aside id="info-panel" class="absolute top-4 left-4 right-4 md:right-auto md:w-96 info-panel rounded-lg shadow-xl overflow-hidden transition-all duration-300 flex flex-col max-h-[calc(100dvh-2rem)]">
     <!-- パネルヘッダー -->
     <header class="panel-header p-4 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors flex-none" onclick="togglePanel()">
@@ -159,9 +154,7 @@
   <script>
     // --- 設定 ---
     const PROXY_URL = 'https://corsproxy.io/?';
-
     const JMA_TILE_BASE = 'https://www.jma.go.jp/bosai/jmatile/data/snow';
-    const AREA_URL = 'https://www.jma.go.jp/bosai/common/const/area.json';
 
     const MAP_CENTER = [38.0, 137.0];
     const MAP_ZOOM = 6;
@@ -191,7 +184,6 @@
     }).addTo(map);
 
     let geoJsonLayer = null;
-    let areaData = {}; // エリアデータ保持用
     let currentGeoData = null; // 取得したGeoJSONデータを保持
     let isFavoriteMode = false; // お気に入り表示モードかどうか
     let currentPopupCode = null; // 再描画時にポップアップを復元するための変数
@@ -217,12 +209,10 @@
       if (body.style.display === 'none') {
         body.style.display = 'block';
         icon.style.transform = 'rotate(0deg)'; // 元に戻す
-        // 開いたときは高さ制限を復活させる
         panel.style.height = 'auto'; 
       } else {
         body.style.display = 'none';
         icon.style.transform = 'rotate(-90deg)'; // 横向きにする
-        // 閉じたときはヘッダーの高さだけにする
         panel.style.height = 'auto';
       }
     }
@@ -687,15 +677,7 @@
       const timeDiv = document.getElementById('data-time');
 
       try {
-        const [timeData, areaMaster] = await Promise.all([
-          getLatestSnowTimeData(),
-          fetchWithProxy(AREA_URL).catch(e => {
-            console.warn("エリアデータ取得失敗:", e);
-            return {};
-          })
-        ]);
-
-        areaData = areaMaster;
+        const timeData = await getLatestSnowTimeData();
 
         const basetime = timeData.basetime;
         const validtime = timeData.validtime;
