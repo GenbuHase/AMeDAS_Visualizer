@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>アメダス積雪マップ</title>
-  <meta name="version" content="1.0.0-beta.1" />
+  <meta name="version" content="1.0.0-beta.2" />
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous"></script>
@@ -111,17 +111,13 @@
     <!-- パネルコンテンツ -->
     <article id="panel-body" class="panel-body p-4 pt-2">
       <!-- ビュー切り替えタブ -->
-      <div class="flex border-b border-gray-200 mb-4">
+      <div class="flex border-b border-gray-200">
         <div id="tab-all" onclick="event.stopPropagation(); switchMode(false)" class="flex-1 py-2 text-sm font-bold text-center cursor-pointer transition-colors border-b-2 border-blue-600 text-blue-600">📌 すべての地点</div>
         <div id="tab-fav" onclick="event.stopPropagation(); switchMode(true)" class="flex-1 py-2 text-sm font-bold text-center cursor-pointer transition-colors border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50">⭐️ お気に入り</div>
       </div>
 
-      <div id="status" class="text-sm text-gray-600 mb-2">
-        <span class="inline-block animate-pulse text-blue-600 font-bold">●</span> データを読み込み中...
-      </div>
-
       <!-- 観測日時 -->
-      <div class="border-t pt-4">
+      <div class="pt-4">
         <h2 class="text-sm font-bold text-gray-700 mb-2">📅 観測日時</h2>
         <p id="data-time" class="text-lg font-mono text-gray-900">----/--/-- --:--</p>
       </div>
@@ -389,104 +385,8 @@
       });
     });
 
-    // --- リスト表示機能 ---
-    function updateRankingList() {
-      if (!currentGeoData || !currentGeoData.features) return;
-
-      const container = document.getElementById('ranking-container');
-
-      // データ抽出と整形
-      let items = currentGeoData.features.map(f => {
-        const props = f.properties;
-        const snowDepth = getSnowDepth(props);
-
-        // 地点名解決
-        const nameJP = props.nameJP || props.kjName;
-        const nameKana = props.nameKana || props.knName;
-        let displayName = "";
-        if (nameJP && nameKana) displayName = nameJP;
-        else displayName = nameJP || props.name || nameKana || props.code || "地点";
-
-        return {
-          code: String(props.code),
-          name: displayName,
-          snowDepth: snowDepth,
-          lat: f.geometry.coordinates[1],
-          lon: f.geometry.coordinates[0]
-        };
-      }).filter(item => item.snowDepth !== null && item.snowDepth !== 32767);
-
-      // 降順ソート
-      items.sort((a, b) => b.snowDepth - a.snowDepth);
-
-      // モードによるフィルタ
-      let displayItems = [];
-      let title = "";
-
-      if (isFavoriteMode) {
-        const favs = getFavorites();
-        displayItems = items.filter(item => favs.includes(item.code));
-        title = `⭐️ お気に入り地点`;
-        if (displayItems.length === 0) {
-          container.innerHTML = `
-            <h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3>
-            <div class="text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">登録がありません</div>
-          `;
-
-          return;
-        }
-      } else {
-        displayItems = items.slice(0, 20);
-        title = "📊 積雪量ランキング (Top20)";
-      }
-
-      // HTML生成
-      let html = `
-        <h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3>
-        <ul class="text-sm space-y-1 max-h-40 overflow-y-auto pr-1">
-      `;
-
-      displayItems.forEach((item, index) => {
-        const rank = `<span class="inline-block w-5 text-center font-bold text-gray-500 mr-1">${index + 1}.</span>`;
-
-        html += `
-          <li class="flex justify-between items-center p-2 hover:bg-blue-50 rounded border border-transparent hover:border-blue-100 cursor-pointer transition-colors" onclick="flyToPoint(${item.lat}, ${item.lon}, '${item.code}')">
-              <div class="truncate flex-1 flex items-center">
-                  ${rank}
-                  <span class="font-medium text-gray-800 truncate">${item.name}</span>
-              </div>
-              <div class="font-bold text-blue-800 whitespace-nowrap ml-2">
-                  ${item.snowDepth} <span class="text-xs text-gray-600">cm</span>
-              </div>
-          </li>
-        `;
-      });
-
-      html += '</ul>';
-
-      container.innerHTML = html;
-    }
-
-    // 地点へ移動してポップアップを開く
-    window.flyToPoint = function (lat, lon, code) {
-      map.flyTo([lat, lon], 12, { duration: 1.5 });
-      // ポップアップを開くために少し待つ (移動完了後)
-      setTimeout(() => {
-        if (geoJsonLayer) {
-          geoJsonLayer.eachLayer(layer => {
-            const props = layer.feature.properties || {};
-            if (String(props.code) === String(code)) {
-              layer.openPopup();
-            }
-          });
-        }
-      }, 1600);
-    };
-
     // マップ描画関数
     function renderMap() {
-      const statusDiv = document.getElementById('status');
-
       if (!currentGeoData) return;
 
       if (geoJsonLayer) {
@@ -569,7 +469,7 @@
 
           if (code) {
             const jmaGraphUrl = `https://www.jma.go.jp/bosai/amedas/#amdno=${code}&format=graph&elem=snow`;
-            // シンプルなリンクボタン (白背景・青文字) - flex-1 で横並びに対応
+            // シンプルなリンクボタン (白背景・青文字)
             graphLinkHtml = `
               <a
                 href="${jmaGraphUrl}" target="_blank" rel="noopener noreferrer" 
@@ -677,19 +577,103 @@
         });
         currentPopupCode = null; // リセット
       }
-
-      if (isFavoriteMode) {
-        statusDiv.innerHTML = `<span class="text-yellow-600 font-bold">★</span> お気に入り (${count} 地点)`;
-      } else {
-        statusDiv.innerHTML = `<span class="text-green-600 font-bold">✔</span> 読み込み完了 (積雪地点: ${count})`;
-      }
     }
 
-    window.loadData = async function () {
-      const statusDiv = document.getElementById('status');
-      const timeDiv = document.getElementById('data-time');
+    // --- リスト表示機能 ---
+    function updateRankingList() {
+      const container = document.getElementById('ranking-container');
+      if (!currentGeoData || !currentGeoData.features) return;
 
-      statusDiv.innerHTML = '<span class="inline-block animate-pulse text-blue-600 font-bold">●</span> データを読み込み中...';
+      // データ抽出と整形
+      let items = currentGeoData.features.map(f => {
+        const props = f.properties;
+        const snowDepth = getSnowDepth(props);
+
+        // 地点名解決
+        const nameJP = props.nameJP || props.kjName;
+        const nameKana = props.nameKana || props.knName;
+        let displayName = "";
+        if (nameJP && nameKana) displayName = nameJP;
+        else displayName = nameJP || props.name || nameKana || props.code || "地点";
+
+        return {
+          code: String(props.code),
+          name: displayName,
+          snowDepth: snowDepth,
+          lat: f.geometry.coordinates[1],
+          lon: f.geometry.coordinates[0]
+        };
+      }).filter(item => item.snowDepth !== null && item.snowDepth !== 32767);
+
+      // 降順ソート
+      items.sort((a, b) => b.snowDepth - a.snowDepth);
+
+      // モードによるフィルタ
+      let displayItems = [];
+      let title = "";
+
+      if (isFavoriteMode) {
+        const favs = getFavorites();
+        displayItems = items.filter(item => favs.includes(item.code));
+        title = `⭐️ お気に入り地点`;
+        if (displayItems.length === 0) {
+          container.innerHTML = `
+            <h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3>
+            <div class="text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">登録がありません</div>
+          `;
+
+          return;
+        }
+      } else {
+        displayItems = items.slice(0, 20);
+        title = "📊 積雪量ランキング (Top20)";
+      }
+
+      // HTML生成
+      let html = `
+        <h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3>
+        <ul class="text-sm space-y-1 max-h-40 overflow-y-auto pr-1">
+      `;
+
+      displayItems.forEach((item, index) => {
+        const rank = `<span class="inline-block w-5 text-center font-bold text-gray-500 mr-1">${index + 1}.</span>`;
+
+        html += `
+          <li class="flex justify-between items-center p-2 hover:bg-blue-50 rounded border border-transparent hover:border-blue-100 cursor-pointer transition-colors" onclick="flyToPoint(${item.lat}, ${item.lon}, '${item.code}')">
+              <div class="truncate flex-1 flex items-center">
+                  ${rank}
+                  <span class="font-medium text-gray-800 truncate">${item.name}</span>
+              </div>
+              <div class="font-bold text-blue-800 whitespace-nowrap ml-2">
+                  ${item.snowDepth} <span class="text-xs text-gray-600">cm</span>
+              </div>
+          </li>
+        `;
+      });
+
+      html += '</ul>';
+
+      container.innerHTML = html;
+    }
+
+    // 地点へ移動してポップアップを開く
+    window.flyToPoint = function (lat, lon, code) {
+      map.flyTo([lat, lon], 12, { duration: 1.5 });
+      // ポップアップを開くために少し待つ (移動完了後)
+      setTimeout(() => {
+        if (geoJsonLayer) {
+          geoJsonLayer.eachLayer(layer => {
+            const props = layer.feature.properties || {};
+            if (String(props.code) === String(code)) {
+              layer.openPopup();
+            }
+          });
+        }
+      }, 1600);
+    };
+
+    window.loadData = async function () {
+      const timeDiv = document.getElementById('data-time');
 
       try {
         const [timeData, areaMaster] = await Promise.all([
@@ -719,7 +703,6 @@
 
       } catch (error) {
         console.error(error);
-        statusDiv.innerHTML = `<span class="text-red-600 font-bold">⚠</span> エラー: ${error.message}`;
       }
     }
 
