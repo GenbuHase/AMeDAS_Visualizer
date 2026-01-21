@@ -6,28 +6,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <title>アメダス積雪マップ | 全国のアメダス積雪深を可視化</title>
-  <meta name="version" content="1.0.1" />
+  <title>アメダスマップ | 全国のアメダスデータを可視化</title>
+  <meta name="version" content="2.0.0" />
 
   <!-- SEO Meta Tags -->
-  <meta name="description" content="気象庁のアメダスデータを利用して、日本全国の現在の積雪深を地図上に可視化するWebアプリケーションです。積雪量ランキングやお気に入り地点の登録機能も搭載。">
-  <meta name="keywords" content="アメダス, 積雪マップ, 積雪深, 気象庁, 天気, 雪, AMeDAS, Snow Depth, 可視化">
+  <meta name="description" content="気象庁のアメダスデータを利用して、日本全国の現在の気温、降水量、風速、積雪深、湿度を地図上に可視化するWebアプリケーションです。">
+  <meta name="keywords" content="アメダス, 天気, 気象庁, 気温, 降水量, 風速, 積雪深, 湿度, 可視化, マップ">
   <meta name="author" content="Genbu Hase">
   <meta name="robots" content="index, follow">
 
   <!-- Open Graph Protocol (OGP) -->
-  <meta property="og:title" content="アメダス積雪マップ | 全国のアメダス積雪深を可視化">
+  <meta property="og:title" content="アメダスマップ | 全国のアメダスデータを可視化">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://genbuhase.github.io/AMeDAS_Visualizer/">
   <!-- <meta property="og:image" content="https://genbuhase.github.io/ogp-image.png"> TODO: OGP画像のURLに変更 -->
-  <meta property="og:description" content="気象庁のアメダスデータを利用して、日本全国の現在の積雪深を地図上に可視化するWebアプリケーションです。">
-  <meta property="og:site_name" content="アメダス積雪マップ">
+  <meta property="og:description" content="気象庁のアメダスデータを利用して、日本全国の現在の気象状況（気温、降水量など）を地図上に可視化するWebアプリケーションです。">
+  <meta property="og:site_name" content="アメダスマップ">
   <meta property="og:locale" content="ja_JP">
 
   <!-- Twitter Cards -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="アメダス積雪マップ">
-  <meta name="twitter:description" content="日本全国のアメダス積雪深をリアルタイムで地図上に表示します。">
+  <meta name="twitter:title" content="アメダスマップ">
+  <meta name="twitter:description" content="日本全国のアメダスデータ（気温、降水量、積雪深など）をリアルタイムで地図上に表示します。">
   <!-- <meta name="twitter:image" content="https://genbuhase.github.io/ogp-image.png"> TODO: OGP画像のURLに変更 -->
 
   <!-- Icons (Placeholders) -->
@@ -126,7 +126,7 @@
   <aside id="info-panel" class="absolute top-4 left-4 right-4 md:right-auto md:w-96 info-panel rounded-lg shadow-xl overflow-hidden transition-all duration-300 flex flex-col max-h-[calc(100dvh-2rem)]">
     <!-- パネルヘッダー -->
     <header class="panel-header p-4 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors flex-none" onclick="togglePanel()">
-      <h1 class="text-xl font-bold text-gray-800 m-0">⛄ アメダス積雪マップ</h1>
+      <h1 class="text-xl font-bold text-gray-800 m-0">🗾 アメダスマップ</h1>
 
       <button id="panel-toggle-icon" class="text-gray-500 hover:text-gray-700 font-bold transform transition-transform duration-300 p-1">
         ▼
@@ -147,6 +147,18 @@
         <p id="data-time" class="text-lg font-mono text-gray-900">----/--/-- --:--</p>
       </div>
 
+      <!-- データ種類選択 -->
+      <div class="pt-4">
+        <h2 class="text-sm font-bold text-gray-700 mb-2">📊 データ種類</h2>
+        <select id="dataTypeSelect" class="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="changeDataType(this.value)">
+          <option value="temp" selected>🌡️ 気温</option>
+          <option value="precipitation1h">☔ 降水量（1時間）</option>
+          <option value="wind">🍃 風速</option>
+          <option value="snow">⛄️ 積雪深</option>
+          <option value="humidity">💧 湿度</option>
+        </select>
+      </div>
+
       <!-- ランキング/お気に入りリスト -->
       <div id="ranking-container" class="pt-4 pb-4">
         <!-- JSで動的に挿入 -->
@@ -162,9 +174,7 @@
       </div>
 
       <div class="border-t mt-4 pt-4 text-xs text-gray-500">
-        データ出典: <a href="https://www.jma.go.jp/" target="_blank" class="underline hover:text-blue-600">気象庁</a><br>
-        ※積雪計のあるアメダス観測所のみ表示されます。<br>
-        ※CORS制限回避のためプロキシを使用しています。
+        データ出典: <a href="https://www.jma.go.jp/" target="_blank" class="underline hover:text-blue-600">気象庁</a>
       </div>
 
       <button onclick="event.stopPropagation(); loadData()" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200 shadow hover:shadow-md">
@@ -185,17 +195,95 @@
     const MAP_ZOOM = 6;
     const STORAGE_KEY = 'amedas_favorites';
 
-    // --- 色設定 (積雪深 cm) ---
-    const SNOW_COLORS = [
-      { min: 200, color: '#e600ab', label: '200cm ～' }, // 猛烈な雪
-      { min: 150, color: '#ff2800', label: '150cm ～' }, // 非常に多い
-      { min: 100, color: '#ff9900', label: '100cm ～' }, // かなり多い
-      { min: 50, color: '#f2f200', label: '50cm ～' },   // 多い
-      { min: 20, color: '#0041ff', label: '20cm ～' },   // やや多い
-      { min: 5, color: '#218cff', label: '5cm ～' },     // 少なめ
-      { min: 1, color: '#a0d2ff', label: '1cm ～' },     // 積雪あり
-      { min: 0, color: '#cccccc', label: '0cm' }        // グレーに変更 (#cccccc)
-    ];
+    // --- データ定義 ---
+    const DATA_TYPES = {
+      temp: {
+        name: '気温',
+        unit: '℃',
+        icon: '🌡️',
+        jmaElemCode: 'temp',
+        colors: [
+          { min: 35, color: '#960018', label: '35℃ ～' },
+          { min: 30, color: '#ff2800', label: '30℃ ～' },
+          { min: 25, color: '#ff9900', label: '25℃ ～' },
+          { min: 20, color: '#f2f200', label: '20℃ ～' },
+          { min: 15, color: '#00ff00', label: '15℃ ～' },
+          { min: 10, color: '#00cfff', label: '10℃ ～' },
+          { min: 5, color: '#0041ff', label: '5℃ ～' },
+          { min: 0, color: '#218cff', label: '0℃ ～' },
+          { min: -100, color: '#a0d2ff', label: '0℃ 未満' }
+        ],
+        sortDesc: true
+      },
+
+      precipitation1h: {
+        name: '降水量（1時間）',
+        unit: 'mm',
+        icon: '🌧️',
+        jmaElemCode: 'precipitation1h',
+        colors: [
+          { min: 80, color: '#b40068', label: '80mm ～' },
+          { min: 50, color: '#ff2800', label: '50mm ～' },
+          { min: 30, color: '#ff9900', label: '30mm ～' },
+          { min: 20, color: '#f2f200', label: '20mm ～' },
+          { min: 10, color: '#218cff', label: '10mm ～' },
+          { min: 5, color: '#0041ff', label: '5mm ～' },
+          { min: 1, color: '#a0d2ff', label: '1mm ～' },
+          { min: 0, color: '#cccccc', label: '0mm' }
+        ],
+        sortDesc: true
+      },
+
+      wind: {
+        name: '風速',
+        unit: 'm/s',
+        icon: '💨',
+        jmaElemCode: 'wind',
+        colors: [
+          { min: 25, color: '#ff0000', label: '25m/s ～' },
+          { min: 20, color: '#ff5500', label: '20m/s ～' },
+          { min: 15, color: '#ff9900', label: '15m/s ～' },
+          { min: 10, color: '#f2f200', label: '10m/s ～' },
+          { min: 5, color: '#00cf00', label: '5m/s ～' },
+          { min: 3, color: '#00ff7f', label: '3m/s ～' },
+          { min: 0, color: '#cccccc', label: '0m/s ～' }
+        ],
+        sortDesc: true
+      },
+
+      snow: {
+        name: '積雪深',
+        unit: 'cm',
+        icon: '⛄',
+        jmaElemCode: 'snow',
+        colors: [
+          { min: 200, color: '#e600ab', label: '200cm ～' },
+          { min: 150, color: '#ff2800', label: '150cm ～' },
+          { min: 100, color: '#ff9900', label: '100cm ～' },
+          { min: 50, color: '#f2f200', label: '50cm ～' },
+          { min: 20, color: '#0041ff', label: '20cm ～' },
+          { min: 5, color: '#218cff', label: '5cm ～' },
+          { min: 1, color: '#a0d2ff', label: '1cm ～' },
+          { min: 0, color: '#cccccc', label: '0cm' }
+        ],
+        sortDesc: true
+      },
+
+      humidity: {
+        name: '湿度',
+        unit: '%',
+        icon: '💧',
+        jmaElemCode: 'humidity',
+        colors: [
+          { min: 90, color: '#0041ff', label: '90% ～' },
+          { min: 70, color: '#00cfff', label: '70% ～' },
+          { min: 50, color: '#00ff00', label: '50% ～' },
+          { min: 30, color: '#f2f200', label: '30% ～' },
+          { min: 0, color: '#ff9900', label: '0% ～' }
+        ],
+        sortDesc: true
+      }
+    };
 
     // --- マップ初期化 ---
     const map = L.map('map', { zoomControl: false }).setView(MAP_CENTER, MAP_ZOOM);
@@ -209,21 +297,40 @@
     }).addTo(map);
 
     let geoJsonLayer = null;
-    let currentGeoData = null; // 取得したGeoJSONデータを保持
+    let currentGeoData = null; // 取得したアメダスデータまたはGeoJSONデータ(積雪深)
     let isFavoriteMode = false; // お気に入り表示モードかどうか
     let currentPopupCode = null; // 再描画時にポップアップを復元するための変数
+    let currentDataType = 'temp'; // 現在選択されているデータ種類
+    let amedasStations = null; // 観測所データ(amedastable.json)
 
     // --- 凡例の生成 ---
     const legendContainer = document.getElementById('legend');
-    SNOW_COLORS.forEach(item => {
-      // 0cmも表示する
-      const div = document.createElement('div');
-      div.className = 'legend-item';
-      // 0cmの場合は枠線をつける (min === 0 で判定)
-      const borderStyle = item.min === 0 ? 'border: 1px solid #999;' : '';
-      div.innerHTML = `<div class="legend-color" style="background:${item.color}; ${borderStyle}"></div><span>${item.label}</span>`;
-      legendContainer.appendChild(div);
-    });
+    
+    function updateLegend() {
+      legendContainer.innerHTML = '';
+      const typeConfig = DATA_TYPES[currentDataType];
+      if (!typeConfig) return;
+
+      typeConfig.colors.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'legend-item';
+        // 0の時など特定条件で枠線をつける
+        const borderStyle = (item.min === 0 || item.label.includes('0mm')) ? 'border: 1px solid #999;' : '';
+        div.innerHTML = `<div class="legend-color" style="background:${item.color}; ${borderStyle}"></div><span>${item.label}</span>`;
+        legendContainer.appendChild(div);
+      });
+    }
+
+    // 初期表示
+    updateLegend();
+
+    // --- データ種類変更 ---
+    function changeDataType(type) {
+      if (currentDataType === type) return;
+      currentDataType = type;
+      updateLegend();
+      loadData(); // データを再取得・再描画
+    }
 
     // --- UI パネル制御 ---
     function togglePanel() {
@@ -301,47 +408,74 @@
 
     // --- ユーティリティ ---
 
+    // 値のフォーマット
+    function formatValue(val) {
+      if (val === null || val === undefined) return '-';
+      return val.toLocaleString();
+    }
+
+    // 観測所プロパティから現在のモードの値を取得
+    function getValue(props) {
+      if (!props) return null;
+      
+      let val = null;
+
+      // 積雪深モード (GeoJSON由来またはJSON由来)
+      if (currentDataType === 'snow') {
+        // GeoJSON (jmatile) 由来の場合
+        if (props.snowd !== undefined) val = props.snowd;
+        // JSON (amedas/map) 由来の場合
+        else if (props.snow !== undefined) val = props.snow;
+        else if (props.val !== undefined) val = props.val;
+      } else {
+        // その他のモード (JSON由来)
+        val = props[currentDataType];
+      }
+      
+      // 値がない場合 (undefined, null)
+      if (val === undefined || val === null) return null;
+      
+      // 配列の場合(JSON由来の一部)は[値, フラグ]
+      if (Array.isArray(val)) {
+         val = val[0];
+      }
+
+      const num = parseFloat(val);
+      return isNaN(num) ? null : num;
+    }
+
+    // 色を取得
+    function getColor(val) {
+      const typeConfig = DATA_TYPES[currentDataType];
+      if (val === null || val === undefined) return '#ccc';
+      
+      // colors 配列を上から見て条件に合うものを返す
+      const config = typeConfig.colors.find(c => val >= c.min);
+      return config ? config.color : '#ccc';
+    }
+
     // ズームレベルに応じた半径計算
-    function calcRadius(zoom, snowDepth) {
-      // 0cm地点は見やすくするため最小半径を確保
-      if (snowDepth <= 0) return zoom < 7 ? 3 : 5;
+    function calcRadius(zoom, val) {
+      if (val === null || val === undefined) val = 0;
+      
+      // 0値地点は見やすくするため最小半径を確保
+      if (val <= 0) return zoom < 7 ? 3 : 5;
 
       // 基礎サイズ: ズームレベルが高いほど大きく
       let baseSize = (zoom - 4) * 1.2;
+      if (baseSize < 2) baseSize = 2;
 
-      if (baseSize < 2) {
-        baseSize = 2;
-      }
-
-      // 積雪量補正:
-      // 基本は平方根で計算しつつ、200cmを超えた分をリニアに加算して強調
-      let depthFactor = Math.sqrt(snowDepth) * 0.5;
-
-      if (snowDepth > 200) {
-        // 200cmを超えた分に対してボーナス加算 (より極端に大きくする)
-        depthFactor += (snowDepth - 200) * 0.05;
-      }
-
-      return baseSize + depthFactor;
-    }
-
-    function getSnowDepth(props) {
-      let val = undefined;
-      if (props.val !== undefined) val = props.val;
-      else if (props.snow !== undefined) val = props.snow;
-      else if (props.snowd !== undefined) val = props.snowd;
-
-      if (val === undefined) {
-        for (const key in props) {
-          if (typeof props[key] === 'number') {
-            val = props[key];
-            break;
+      // 値による補正 (積雪深以外でも大きくしすぎないように調整)
+      let factor = 0;
+      if (val > 0) {
+          factor = Math.sqrt(val) * 0.5;
+          // 積雪深などで値が大きい場合のキャップ的な調整
+          if (currentDataType === 'snow' && val > 200) {
+             factor += (val - 200) * 0.05;
           }
-        }
       }
-      if (val === undefined || val === null) return null;
-      const num = parseInt(val, 10);
-      return isNaN(num) ? null : num;
+
+      return baseSize + factor;
     }
 
     // UTC文字列(YYYYMMDDHHmm)をJST文字列(YYYY/MM/DD HH:mm)に変換
@@ -387,6 +521,51 @@
       }
     }
 
+    // アメダス観測所一覧の取得
+    async function fetchStations() {
+      if (amedasStations) return amedasStations;
+      const url = 'https://www.jma.go.jp/bosai/amedas/const/amedastable.json';
+      try {
+        amedasStations = await fetchWithProxy(url);
+        return amedasStations;
+      } catch (e) {
+        console.error("Failed to fetch station list:", e);
+        throw e;
+      }
+    }
+
+    // 最新時刻の取得 (その他のデータ用)
+    async function getLatestAmedasTime() {
+      const url = 'https://www.jma.go.jp/bosai/amedas/data/latest_time.txt';
+      try {
+        // テキストデータを取得 (例: 2024-01-01T12:00:00+09:00)
+        const response = await fetch(PROXY_URL + encodeURIComponent(url));
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const text = await response.text();
+        return new Date(text.trim()); // Dateオブジェクトを返す
+      } catch (e) {
+        console.error("最新時刻取得エラー:", e);
+        throw e;
+      }
+    }
+    
+    // 全国データの取得 (JSON形式)
+    async function fetchAmedasMapData(dateObj) {
+      // YYYYMMDDHHmmss形式に変換
+      const pad = (n) => n.toString().padStart(2, '0');
+      const yyyy = dateObj.getFullYear();
+      const mm = pad(dateObj.getMonth() + 1);
+      const dd = pad(dateObj.getDate());
+      const hh = pad(dateObj.getHours());
+      const mi = pad(Math.floor(dateObj.getMinutes() / 10) * 10); // 10分単位に丸める
+      const ss = '00';
+      
+      const timeStr = `${yyyy}${mm}${dd}${hh}${mi}${ss}`;
+      const url = `https://www.jma.go.jp/bosai/amedas/data/map/${timeStr}.json`;
+      
+      return await fetchWithProxy(url);
+    }
+
     async function getLatestSnowTimeData() {
       const url = `${JMA_TILE_BASE}/targetTimes.json`;
       try {
@@ -411,8 +590,8 @@
 
       geoJsonLayer.eachLayer(function (layer) {
         if (layer.feature && layer.feature.properties) {
-          const snowDepth = getSnowDepth(layer.feature.properties) || 0;
-          layer.setRadius(calcRadius(currentZoom, snowDepth));
+          const val = getValue(layer.feature.properties);
+          layer.setRadius(calcRadius(currentZoom, val));
         }
       });
     });
@@ -425,15 +604,18 @@
         map.removeLayer(geoJsonLayer);
       }
 
-      let count = 0;
       const favs = getFavorites();
 
       geoJsonLayer = L.geoJSON(currentGeoData, {
         filter: function (feature) {
           const props = feature.properties || {};
-          const snowDepth = getSnowDepth(props);
+          const val = getValue(props);
 
-          if (snowDepth === null || snowDepth === 32767) return false;
+          // 値がない、または無効な値の場合は表示しない
+          if (val === null || val === undefined) return false;
+          
+          // 積雪深の場合の欠測値除外 (既存互換)
+          if (currentDataType === 'snow' && val === 32767) return false;
 
           if (isFavoriteMode) {
             return favs.includes(String(props.code));
@@ -441,206 +623,164 @@
 
           return true;
         },
+
         pointToLayer: function (feature, latlng) {
-          const snowDepth = getSnowDepth(feature.properties || {});
+          const props = feature.properties || {};
+          const val = getValue(props);
 
-          let color = '#ccc';
-          let opacity = 0.5;
+          let color = getColor(val);
+          let opacity = 0.8;
           let borderColor = '#fff';
+          let weight = 1;
+          let radius = calcRadius(map.getZoom(), val);
 
-          if (snowDepth > 0) {
-            opacity = 0.9;
-            for (const c of SNOW_COLORS) {
-              if (snowDepth >= c.min) {
-                color = c.color;
-                break;
-              }
-            }
-          } else {
+          if (!val) {
             color = '#cccccc'; // グレーに変更
             borderColor = '#666'; // 少し濃い枠線
             opacity = 1.0;
           }
 
-          if (snowDepth > 0) count++;
+          // お気に入り強調
+          const isFav = isFavorite(props.code);
+          if (isFav) {
+            borderColor = '#ff0000'; // 赤枠
+            weight = 2;              // 太枠
+            opacity = 1.0;
+          }
 
-          const radius = calcRadius(map.getZoom(), snowDepth);
-
-          return L.circleMarker(latlng, {
+          const marker = L.circleMarker(latlng, {
             radius: radius,
             fillColor: color,
             color: borderColor,
-            weight: 1,
+            weight: weight,
             opacity: opacity,
             fillOpacity: opacity
           });
-        },
-        onEachFeature: function (feature, layer) {
-          const props = feature.properties || {};
-          let snowDepth = getSnowDepth(props);
-          if (snowDepth === null) snowDepth = "不明";
 
-          const nameJP = props.nameJP || props.kjName;
-          const nameKana = props.nameKana || props.knName;
-          let displayName = "";
-          let subName = "";
+          // ポップアップの設定
+          let unit = DATA_TYPES[currentDataType].unit;
+          let label = DATA_TYPES[currentDataType].name;
+          let elemCode = DATA_TYPES[currentDataType].jmaElemCode || 'snow';
 
-          if (nameJP && nameKana) {
-            displayName = nameJP;
-            subName = nameKana;
-          } else {
-            displayName = nameJP || props.name || nameKana || props.code || "地点";
-          }
+          // 地点名解決
+          const nameJP = props.nameJP || props.kjName || props.name || "地点";
+          const nameKana = props.nameKana || props.knName || "";
+          let displayName = nameJP;
+          let subName = nameKana;
+          
           if (!displayName || displayName === "地点") {
-            displayName = `地点`;
+             displayName = props.code || "地点";
+             subName = "";
           }
 
-          const code = props.code;
           let graphLinkHtml = "";
           let favBtnHtml = "";
+          const code = props.code;
 
           if (code) {
-            const jmaGraphUrl = `https://www.jma.go.jp/bosai/amedas/#amdno=${code}&format=graph&elem=snow`;
-            // シンプルなリンクボタン (白背景・青文字)
-            graphLinkHtml = `
+             const jmaGraphUrl = `https://www.jma.go.jp/bosai/amedas/#amdno=${code}&format=graph&elem=${elemCode}`;
+             
+             graphLinkHtml = `
               <a
                 href="${jmaGraphUrl}" target="_blank" rel="noopener noreferrer" 
                 class="flex-1 bg-white hover:bg-blue-50 text-blue-600 border border-blue-600 text-sm font-bold py-2 px-3 rounded text-center transition no-underline flex items-center justify-center" style="color: #2563eb !important; text-decoration: none !important;">
-
                 📊 推移グラフ
               </a>
             `;
-
-            // シンプルなお気に入りボタン
-            // 型をStringに統一してチェック
-            const isFav = isFavorite(String(code));
+            
             const btnText = isFav ? '★ 解除' : '☆ お気に入り';
             const btnClass = isFav
               ? "flex-1 bg-yellow-50 text-yellow-700 border border-yellow-300 text-sm font-bold py-2 px-3 rounded cursor-pointer hover:bg-yellow-100 transition flex items-center justify-center"
               : "flex-1 bg-white text-gray-600 border border-gray-300 text-sm font-bold py-2 px-3 rounded cursor-pointer hover:bg-gray-50 transition flex items-center justify-center";
 
-            // onclickで再描画をトリガーする
             favBtnHtml = `
               <button onclick="toggleFavorite('${code}')" class="${btnClass}">
                   ${btnText}
               </button>
             `;
-
-            // お気に入り地点の場合、積雪量を常時表示するTooltipを設定 (強調表示)
-            if (isFav && snowDepth !== null) {
-              // 色の決定 (凡例と同期)
-              let bgColor = '#cccccc';
-              let textColor = '#000000';
-
-              if (snowDepth > 0) {
-                for (const c of SNOW_COLORS) {
-                  if (snowDepth >= c.min) {
-                    bgColor = c.color;
-                    break;
-                  }
-                }
-              }
-
-              // 視認性のために濃い背景色の場合は白文字にする
-              const darkColors = ['#e600ab', '#ff2800', '#0041ff', '#218cff'];
-              if (darkColors.includes(bgColor)) {
-                textColor = '#ffffff';
-              }
-
-              // スタイル付きHTMLコンテンツ
+            
+            // お気に入り地点の場合のTooltip (強調表示)
+             if (isFav && val !== null) {
               const tooltipHtml = `
-                <div style="
-                  background-color: ${bgColor};
-                  color: ${textColor};
-                  padding: 2px 6px;
-                  border-radius: 4px;
-                  font-weight: bold;
-                  font-size: 12px;
-                  border: 1px solid rgba(0,0,0,0.15);
-                  box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
-                  white-space: nowrap;
-                  text-align: center;
-                ">
-                  ${snowDepth}cm
+                <div style="background-color: ${color}; color: #fff; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 12px; text-shadow: 0 0 2px #000;">
+                  ${formatValue(val)}${unit}
                 </div>
               `;
-
-              layer.bindTooltip(tooltipHtml, {
-                permanent: true,
-                direction: 'right',
-                offset: [8, 0],
-                className: 'fav-label', // CSSでデフォルトスタイルをリセット
-                opacity: 1
-              });
+              marker.bindTooltip(tooltipHtml, { permanent: true, direction: 'right', offset: [8, 0], className: 'fav-label', opacity: 1 });
             }
           }
 
-          // シンプル化したポップアップデザイン
-          // ボタンエリアを flex (row) gap-2 に変更して横並びにする
-          layer.bindPopup(`
-            <div class="font-sans">
+          let popupContent = `
+            <div class="font-sans min-w-[240px]">
                 <div class="font-bold text-lg mb-1">${displayName}</div>
                 ${subName ? `<div class="text-xs text-gray-600 mb-1">${subName}</div>` : ''}
                 <hr class="my-2 border-gray-300">
-                <div class="mb-2">
-                    <span class="text-sm text-gray-600">積雪深:</span>
-                    <span class="font-bold text-xl ml-1">${snowDepth}</span>
-                    <span class="text-sm">cm</span>
+                <div class="mb-3">
+                    <span class="text-sm text-gray-600">${label}:</span>
+                    <span class="font-bold text-2xl ml-1" style="color:${color}">${formatValue(val)}</span>
+                    <span class="text-sm ml-1">${unit}</span>
                 </div>
-                <div class="flex gap-2 mt-2">
+                <div class="flex gap-2">
                     ${graphLinkHtml}
                     ${favBtnHtml}
                 </div>
             </div>
-          `, { minWidth: 240 }); // 横並びにするので少し幅を確保
+          `;
+
+          marker.bindPopup(popupContent, { minWidth: 240 });
+
+          // ポップアップ復元
+          if (currentPopupCode && String(props.code) === String(currentPopupCode)) {
+             setTimeout(() => marker.openPopup(), 100);
+             currentPopupCode = null; 
+          }
+
+          return marker;
         }
       }).addTo(map);
-
-      // リストの更新
+      
       updateRankingList();
-
-      // 再描画後にポップアップを復元する処理
-      if (currentPopupCode) {
-        geoJsonLayer.eachLayer(function (layer) {
-          const props = layer.feature.properties || {};
-          if (String(props.code) === String(currentPopupCode)) {
-            layer.openPopup();
-          }
-        });
-        currentPopupCode = null; // リセット
-      }
     }
 
     // --- リスト表示機能 ---
     function updateRankingList() {
       const container = document.getElementById('ranking-container');
+      container.innerHTML = '';
+
       if (!currentGeoData || !currentGeoData.features) return;
 
+      const typeConfig = DATA_TYPES[currentDataType];
+      
       // データ抽出と整形
       let items = currentGeoData.features.map(f => {
         const props = f.properties;
-        const snowDepth = getSnowDepth(props);
+        const val = getValue(props);
 
         // 地点名解決
-        const nameJP = props.nameJP || props.kjName;
-        const nameKana = props.nameKana || props.knName;
-        let displayName = "";
-        if (nameJP && nameKana) displayName = nameJP;
-        else displayName = nameJP || props.name || nameKana || props.code || "地点";
-
+        const nameJP = props.nameJP || props.kjName || props.name || "地点";
+        const code = String(props.code);
+        
         return {
-          code: String(props.code),
-          name: displayName,
-          snowDepth: snowDepth,
-          lat: f.geometry.coordinates[1],
+          code: code,
+          name: nameJP,
+          val: val,
+          lat: f.geometry.coordinates[1], // GeoJSONは [lon, lat]
           lon: f.geometry.coordinates[0]
         };
-      }).filter(item => item.snowDepth !== null && item.snowDepth !== 32767);
+      }).filter(item => {
+          const val = item.val;
+          if (val === null || val === undefined) return false;
+          if (currentDataType === 'snow' && val === 32767) return false;
+          return true;
+      });
 
-      // 降順ソート
-      items.sort((a, b) => b.snowDepth - a.snowDepth);
+      // 並び替え (降順/昇順)
+      items.sort((a, b) => {
+        if (typeConfig.sortDesc) return b.val - a.val;
+        return a.val - b.val;
+      });
 
-      // モードによるフィルタ
+      // 表示アイテムの選定
       let displayItems = [];
       let title = "";
 
@@ -648,43 +788,37 @@
         const favs = getFavorites();
         displayItems = items.filter(item => favs.includes(item.code));
         title = `⭐️ お気に入り地点`;
+        
         if (displayItems.length === 0) {
-          container.innerHTML = `
-            <h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3>
-            <div class="text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">登録がありません</div>
-          `;
-
-          return;
+           container.innerHTML = `<h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3><div class="text-sm text-gray-500 text-center py-2 bg-gray-50 rounded">登録がありません</div>`;
+           return;
         }
       } else {
-        displayItems = items.slice(0, 20);
-        title = "📊 積雪量ランキング (Top20)";
+        displayItems = items.slice(0, 10); // Top 10
+        title = `🏆️ ${typeConfig.name}ランキング`;
       }
-
+      
       // HTML生成
-      let html = `
-        <h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3>
-        <ul class="text-sm space-y-1 max-h-40 overflow-y-auto pr-1">
-      `;
-
+      let html = `<h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3><ul class="text-sm space-y-1 max-h-60 overflow-y-auto pr-1">`;
+      
       displayItems.forEach((item, index) => {
-        const rank = `<span class="inline-block w-5 text-center font-bold text-gray-500 mr-1">${index + 1}.</span>`;
-
+        const rankStr = isFavoriteMode ? '' : `<span class="inline-block w-5 text-center font-bold text-gray-500 mr-1">${index + 1}.</span>`;
+        const color = getColor(item.val);
+        
         html += `
-          <li class="flex justify-between items-center p-2 hover:bg-blue-50 rounded border border-transparent hover:border-blue-100 cursor-pointer transition-colors" onclick="flyToPoint(${item.lat}, ${item.lon}, '${item.code}')">
+          <li class="flex justify-between items-center p-2 hover:bg-gray-100 rounded cursor-pointer transition-colors" onclick="flyToPoint(${item.lat}, ${item.lon}, '${item.code}')">
               <div class="truncate flex-1 flex items-center">
-                  ${rank}
+                  ${rankStr}
                   <span class="font-medium text-gray-800 truncate">${item.name}</span>
               </div>
-              <div class="font-bold text-blue-800 whitespace-nowrap ml-2">
-                  ${item.snowDepth} <span class="text-xs text-gray-600">cm</span>
+              <div class="font-bold whitespace-nowrap ml-2" style="color:${color}">
+                  ${formatValue(item.val)} <span class="text-xs text-black">${typeConfig.unit}</span>
               </div>
           </li>
         `;
       });
-
+      
       html += '</ul>';
-
       container.innerHTML = html;
     }
 
@@ -705,28 +839,94 @@
     };
 
     window.loadData = async function () {
-      const timeDiv = document.getElementById('data-time');
-
+      // 観測所データがなければ取得
       try {
-        const timeData = await getLatestSnowTimeData();
+        await fetchStations();
+      } catch (e) {
+        alert("観測所データの取得に失敗しました。");
+        return;
+      }
 
-        const basetime = timeData.basetime;
-        const validtime = timeData.validtime;
-
-        if (timeData.obstimeJST) {
-          timeDiv.textContent = timeData.obstimeJST;
+      // 読み込み中表示
+      document.getElementById('data-time').textContent = '読み込み中...';
+      const container = document.getElementById('ranking-container');
+      container.innerHTML = '<div class="text-center text-gray-500 py-4">読み込み中...</div>';
+      
+      try {
+        if (currentDataType === 'snow') {
+          // 積雪深: 既存のGeoJSON APIを使用
+          const targetTime = await getLatestSnowTimeData();
+          const validTime = targetTime.validtime; // GMT
+          const baseTime = targetTime.basetime;
+          
+          const geoJsonUrl = `${JMA_TILE_BASE}/${baseTime}/none/${validTime}/surf/amds_snowd/data.geojson`;
+          currentGeoData = await fetchWithProxy(geoJsonUrl);
+          
+          // 時刻表示 (GMT -> JST)
+          const jstDate = formatUtcToJst(validTime);
+          document.getElementById('data-time').textContent = jstDate;
+          
         } else {
-          timeDiv.textContent = formatUtcToJst(basetime);
+          // その他: 新アメダスAPI (JSON) を使用
+          const latestTime = await getLatestAmedasTime();
+          
+          // 時刻表示
+          // YYYY/MM/DD HH:mm 形式
+          const pad = n => n.toString().padStart(2, '0');
+          const timeStr = `${latestTime.getFullYear()}/${pad(latestTime.getMonth()+1)}/${pad(latestTime.getDate())} ${pad(latestTime.getHours())}:${pad(latestTime.getMinutes())}`;
+          document.getElementById('data-time').textContent = timeStr;
+          
+          // データ取得
+          const mapData = await fetchAmedasMapData(latestTime);
+          
+          // GeoJSONへの変換 (amedasStationsとマージ)
+          const features = [];
+          
+          Object.keys(mapData).forEach(code => {
+            const station = amedasStations[code];
+            const data = mapData[code];
+            
+            if (station && data) {
+              const lat = station.lat[0] + station.lat[1] / 60;
+              const lon = station.lon[0] + station.lon[1] / 60;
+              
+              const props = {
+                code: code,
+                kjName: station.kjName,
+                knName: station.knName,
+                // 各データ
+                temp: data.temp ? data.temp[0] : undefined,
+                precipitation1h: data.precipitation1h ? data.precipitation1h[0] : undefined,
+                wind: data.wind ? data.wind[0] : undefined,
+                windDirection: data.windDirection ? data.windDirection[0] : undefined,
+                humidity: data.humidity ? data.humidity[0] : undefined,
+                snow: data.snow ? data.snow[0] : undefined
+              };
+              
+              features.push({
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [lon, lat]
+                },
+                properties: props
+              });
+            }
+          });
+          
+          currentGeoData = {
+            type: "FeatureCollection",
+            features: features
+          };
         }
-
-        console.log(`Target Time (UTC): base=${basetime}, valid=${validtime}`);
-
-        const geoJsonUrl = `${JMA_TILE_BASE}/${basetime}/none/${validtime}/surf/amds_snowd/data.geojson?id=amds_snowd`;
-        currentGeoData = await fetchWithProxy(geoJsonUrl);
+        
         renderMap();
-
-      } catch (error) {
-        console.error(error);
+        
+      } catch (e) {
+        console.error(e);
+        alert("データの取得に失敗しました: " + e.message);
+        document.getElementById('data-time').textContent = '----/--/-- --:--';
+        container.innerHTML = '';
       }
     }
 
