@@ -1,0 +1,165 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.935,
+          45.52
+        ]
+      },
+      "properties": {
+        "code": "11001",
+        "snowd": 250,
+        "kjName": "宗谷岬",
+        "knName": "ソウヤミサキ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          141.32833333333335,
+          43.06
+        ]
+      },
+      "properties": {
+        "code": "14163",
+        "snowd": 180,
+        "kjName": "札幌",
+        "knName": "サッポロ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.09833333333333,
+          39.71666666666667
+        ]
+      },
+      "properties": {
+        "code": "32402",
+        "snowd": 120,
+        "kjName": "秋田",
+        "knName": "アキタ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          140.89666666666668,
+          38.26166666666666
+        ]
+      },
+      "properties": {
+        "code": "34392",
+        "snowd": 80,
+        "kjName": "仙台",
+        "knName": "センダイ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.01833333333335,
+          37.89333333333333
+        ]
+      },
+      "properties": {
+        "code": "54232",
+        "snowd": 30,
+        "kjName": "新潟",
+        "knName": "ニイガタ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          139.75,
+          35.69166666666667
+        ]
+      },
+      "properties": {
+        "code": "44132",
+        "snowd": 10,
+        "kjName": "東京",
+        "knName": "トウキョウ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.51833333333335,
+          34.681666666666665
+        ]
+      },
+      "properties": {
+        "code": "62078",
+        "snowd": 3,
+        "kjName": "大阪",
+        "knName": "オオサカ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          132.46166666666667,
+          34.39833333333333
+        ]
+      },
+      "properties": {
+        "code": "67437",
+        "snowd": 1,
+        "kjName": "広島",
+        "knName": "ヒロシマ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.375,
+          33.58166666666666
+        ]
+      },
+      "properties": {
+        "code": "82182",
+        "snowd": 0,
+        "kjName": "福岡",
+        "knName": "フクオカ"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          130.54666666666665,
+          31.555
+        ]
+      },
+      "properties": {
+        "code": "88317",
+        "snowd": 0,
+        "kjName": "鹿児島",
+        "knName": "カゴシマ"
+      }
+    }
+  ]
+}

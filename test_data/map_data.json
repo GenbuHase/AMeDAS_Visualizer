@@ -1,0 +1,262 @@
+{
+  "11001": {
+    "temp": [
+      36.5,
+      0
+    ],
+    "precipitation1h": [
+      85,
+      0
+    ],
+    "wind": [
+      30,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      95,
+      0
+    ],
+    "snow": [
+      250,
+      0
+    ]
+  },
+  "14163": {
+    "temp": [
+      32,
+      0
+    ],
+    "precipitation1h": [
+      60,
+      0
+    ],
+    "wind": [
+      22,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      75,
+      0
+    ],
+    "snow": [
+      180,
+      0
+    ]
+  },
+  "32402": {
+    "temp": [
+      27,
+      0
+    ],
+    "precipitation1h": [
+      40,
+      0
+    ],
+    "wind": [
+      17,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      55,
+      0
+    ],
+    "snow": [
+      120,
+      0
+    ]
+  },
+  "34392": {
+    "temp": [
+      22,
+      0
+    ],
+    "precipitation1h": [
+      25,
+      0
+    ],
+    "wind": [
+      12,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      35,
+      0
+    ],
+    "snow": [
+      80,
+      0
+    ]
+  },
+  "44132": {
+    "temp": [
+      12,
+      0
+    ],
+    "precipitation1h": [
+      7,
+      0
+    ],
+    "wind": [
+      4,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      0,
+      0
+    ],
+    "snow": [
+      10,
+      0
+    ]
+  },
+  "54232": {
+    "temp": [
+      17,
+      0
+    ],
+    "precipitation1h": [
+      15,
+      0
+    ],
+    "wind": [
+      7,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      10,
+      0
+    ],
+    "snow": [
+      30,
+      0
+    ]
+  },
+  "62078": {
+    "temp": [
+      7,
+      0
+    ],
+    "precipitation1h": [
+      3,
+      0
+    ],
+    "wind": [
+      3,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      0,
+      0
+    ],
+    "snow": [
+      3,
+      0
+    ]
+  },
+  "67437": {
+    "temp": [
+      2,
+      0
+    ],
+    "precipitation1h": [
+      1,
+      0
+    ],
+    "wind": [
+      1,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      0,
+      0
+    ],
+    "snow": [
+      1,
+      0
+    ]
+  },
+  "82182": {
+    "temp": [
+      0,
+      0
+    ],
+    "precipitation1h": [
+      0,
+      0
+    ],
+    "wind": [
+      0,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      0,
+      0
+    ],
+    "snow": [
+      0,
+      0
+    ]
+  },
+  "88317": {
+    "temp": [
+      -5,
+      0
+    ],
+    "precipitation1h": [
+      0,
+      0
+    ],
+    "wind": [
+      0,
+      0
+    ],
+    "windDirection": [
+      1,
+      0
+    ],
+    "humidity": [
+      0,
+      0
+    ],
+    "snow": [
+      0,
+      0
+    ]
+  }
+}

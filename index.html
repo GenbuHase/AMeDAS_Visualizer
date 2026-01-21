@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>アメダスマップ | 全国のアメダスデータを可視化</title>
-  <meta name="version" content="2.0.0" />
+  <meta name="version" content="2.0.0-alpha.2" />
 
   <!-- SEO Meta Tags -->
   <meta name="description" content="気象庁のアメダスデータを利用して、日本全国の現在の気温、降水量、風速、積雪深、湿度を地図上に可視化するWebアプリケーションです。">
@@ -194,6 +194,10 @@
     const MAP_CENTER = [38.0, 137.0];
     const MAP_ZOOM = 6;
     const STORAGE_KEY = 'amedas_favorites';
+
+    // URLパラメータからテストモード判定
+    const urlParams = new URLSearchParams(window.location.search);
+    const TEST_MODE = urlParams.get('test') === 'true';
 
     // --- データ定義 ---
     const DATA_TYPES = {
@@ -504,6 +508,14 @@
     // --- データ取得ロジック ---
 
     async function fetchWithProxy(url) {
+      if (TEST_MODE) {
+        // テストモード時はプロキシを通さず直接取得 (ローカルサーバ等を想定)
+        console.log(`[Test Mode] Fetching: ${url}`);
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        return await response.json();
+      }
+
       try {
         const targetUrl = PROXY_URL + encodeURIComponent(url);
         const response = await fetch(targetUrl);
@@ -524,7 +536,10 @@
     // アメダス観測所一覧の取得
     async function fetchStations() {
       if (amedasStations) return amedasStations;
-      const url = 'https://www.jma.go.jp/bosai/amedas/const/amedastable.json';
+      const url = TEST_MODE 
+        ? './test_data/amedastable.json'
+        : 'https://www.jma.go.jp/bosai/amedas/const/amedastable.json';
+        
       try {
         amedasStations = await fetchWithProxy(url);
         return amedasStations;
@@ -536,8 +551,18 @@
 
     // 最新時刻の取得 (その他のデータ用)
     async function getLatestAmedasTime() {
-      const url = 'https://www.jma.go.jp/bosai/amedas/data/latest_time.txt';
+      const url = TEST_MODE
+        ? './test_data/latest_time.txt'
+        : 'https://www.jma.go.jp/bosai/amedas/data/latest_time.txt';
+
       try {
+        if (TEST_MODE) {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const text = await response.text();
+            return new Date(text.trim());
+        }
+
         // テキストデータを取得 (例: 2024-01-01T12:00:00+09:00)
         const response = await fetch(PROXY_URL + encodeURIComponent(url));
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -551,6 +576,10 @@
     
     // 全国データの取得 (JSON形式)
     async function fetchAmedasMapData(dateObj) {
+      if (TEST_MODE) {
+        return await fetchWithProxy('./test_data/map_data.json');
+      }
+
       // YYYYMMDDHHmmss形式に変換
       const pad = (n) => n.toString().padStart(2, '0');
       const yyyy = dateObj.getFullYear();
@@ -567,7 +596,10 @@
     }
 
     async function getLatestSnowTimeData() {
-      const url = `${JMA_TILE_BASE}/targetTimes.json`;
+      const url = TEST_MODE
+        ? './test_data/targetTimes.json'
+        : `${JMA_TILE_BASE}/targetTimes.json`;
+      
       try {
         const data = await fetchWithProxy(url);
         if (!Array.isArray(data)) throw new Error("targetTimes is not an array");
@@ -802,7 +834,7 @@
       let html = `<h3 class="text-sm font-bold text-gray-700 mb-2">${title}</h3><ul class="text-sm space-y-1 max-h-60 overflow-y-auto pr-1">`;
       
       displayItems.forEach((item, index) => {
-        const rankStr = isFavoriteMode ? '' : `<span class="inline-block w-5 text-center font-bold text-gray-500 mr-1">${index + 1}.</span>`;
+        const rankStr = `<span class="inline-block w-5 text-center font-bold text-gray-500 mr-1">${index + 1}.</span>`;
         const color = getColor(item.val);
         
         html += `
@@ -859,11 +891,14 @@
           const validTime = targetTime.validtime; // GMT
           const baseTime = targetTime.basetime;
           
-          const geoJsonUrl = `${JMA_TILE_BASE}/${baseTime}/none/${validTime}/surf/amds_snowd/data.geojson`;
+          let geoJsonUrl = `${JMA_TILE_BASE}/${baseTime}/none/${validTime}/surf/amds_snowd/data.geojson`;
+          if (TEST_MODE) {
+             geoJsonUrl = './test_data/snow_data.geojson';
+          }
           currentGeoData = await fetchWithProxy(geoJsonUrl);
           
           // 時刻表示 (GMT -> JST)
-          const jstDate = formatUtcToJst(validTime);
+          const jstDate = targetTime.obstimeJST ? targetTime.obstimeJST : formatUtcToJst(validTime);
           document.getElementById('data-time').textContent = jstDate;
           
         } else {
