@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <title>アメダス積雪マップ | 全国のアメダス積雪深を可視化</title>
-  <meta name="version" content="1.0.0.1" />
+  <meta name="version" content="1.0.1" />
 
   <!-- SEO Meta Tags -->
   <meta name="description" content="気象庁のアメダスデータを利用して、日本全国の現在の積雪深を地図上に可視化するWebアプリケーションです。積雪量ランキングやお気に入り地点の登録機能も搭載。">
@@ -303,20 +303,26 @@
 
     // ズームレベルに応じた半径計算
     function calcRadius(zoom, snowDepth) {
-      // 0cm地点は見やすくするため最小半径を確保 (修正: サイズアップ)
+      // 0cm地点は見やすくするため最小半径を確保
       if (snowDepth <= 0) return zoom < 7 ? 3 : 5;
 
       // 基礎サイズ: ズームレベルが高いほど大きく
       let baseSize = (zoom - 4) * 1.2;
-      if (baseSize < 2) baseSize = 2;
 
-      // 積雪量補正: 
-      let depthFactor = Math.sqrt(snowDepth) * 0.4;
+      if (baseSize < 2) {
+        baseSize = 2;
+      }
 
-      let radius = baseSize + depthFactor;
-      if (radius > 25) radius = 25; // 最大サイズ制限
+      // 積雪量補正:
+      // 基本は平方根で計算しつつ、200cmを超えた分をリニアに加算して強調
+      let depthFactor = Math.sqrt(snowDepth) * 0.5;
 
-      return radius;
+      if (snowDepth > 200) {
+        // 200cmを超えた分に対してボーナス加算 (より極端に大きくする)
+        depthFactor += (snowDepth - 200) * 0.05;
+      }
+
+      return baseSize + depthFactor;
     }
 
     function getSnowDepth(props) {
