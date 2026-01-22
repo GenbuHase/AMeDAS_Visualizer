@@ -50,15 +50,9 @@ export const useAmedasData = () => {
       ? '/test_data/latest_time.txt'
       : 'https://www.jma.go.jp/bosai/amedas/data/latest_time.txt'
 
-    if (TEST_MODE) {
-      const response = await fetch(url)
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
-      const text = await response.text()
-      return new Date(text.trim())
-    }
-
-    const response = await fetch(PROXY_URL + encodeURIComponent(url))
+    const response = await fetch(url)
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
+    
     const text = await response.text()
     return new Date(text.trim())
   }
@@ -66,7 +60,7 @@ export const useAmedasData = () => {
   // 全国マップデータ取得 (JSON形式)
   const fetchAmedasMapData = async (dateObj: Date): Promise<AmedasMapData> => {
     if (TEST_MODE) {
-      return await fetchWithProxy('/test_data/map_data.json')
+      return (await fetch('/test_data/map_data.json')).json()
     }
 
     const pad = (n: number) => n.toString().padStart(2, '0')
@@ -89,7 +83,7 @@ export const useAmedasData = () => {
       ? '/test_data/targetTimes.json'
       : `${JMA_TILE_BASE}/targetTimes.json`
     
-    const data = await fetchWithProxy(url)
+    const data = await (await fetch(url)).json()
     if (!Array.isArray(data)) throw new Error('targetTimes is not an array')
 
     const latestValid = data.find((item: SnowTimeData) =>
