@@ -9,6 +9,8 @@ export default defineNuxtConfig({
   ],
   
   app: {
+    baseURL: './',
+
     head: {
       title: 'アメダスマップ | 全国のアメダスデータを可視化',
       meta: [
@@ -38,5 +40,5 @@ export default defineNuxtConfig({
     },
   },
   
-  ssr: false, // Leafletはクライアントサイド専用
+  ssr: false
 })
