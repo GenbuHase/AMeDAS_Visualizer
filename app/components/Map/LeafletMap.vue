@@ -229,12 +229,35 @@ const formatValue = (val: number | null) => {
   return val.toLocaleString()
 }
 
+// 地点へ移動してポップアップを開く
+const flyToPoint = (lat: number, lon: number, code: string) => {
+  if (!map) return
+  
+  map.flyTo([lat, lon], 12, { duration: 1.5 })
+  
+  // ポップアップを開くために少し待つ (移動完了後)
+  setTimeout(() => {
+    if (geoJsonLayer) {
+      geoJsonLayer.eachLayer((layer: any) => {
+        const props = layer.feature?.properties || {}
+        if (String(props.code) === String(code)) {
+          layer.openPopup()
+        }
+      })
+    }
+  }, 1600)
+}
+
 // グローバル関数として公開（ポップアップから呼ばれる）
 if (process.client) {
-  ;(window as any).toggleFavorite = (code: string) => {
+  (window as any).toggleFavorite = (code: string) => {
     toggleFavorite(code)
     currentPopupCode = code
     renderMap()
+  }
+  
+  (window as any).flyToPoint = (lat: number, lon: number, code: string) => {
+    flyToPoint(lat, lon, code)
   }
 }
 </script>

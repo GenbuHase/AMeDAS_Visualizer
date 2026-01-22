@@ -44,11 +44,9 @@ const formatValue = (val: number | null) => {
   return val.toLocaleString()
 }
 
-const emit = defineEmits<{
-  flyTo: [item: RankingItem]
-}>()
-
 const flyToPoint = (item: RankingItem) => {
-  emit('flyTo', item)
+  if (process.client && (window as any).flyToPoint) {
+    (window as any).flyToPoint(item.lat, item.lon, item.code)
+  }
 }
 </script>
