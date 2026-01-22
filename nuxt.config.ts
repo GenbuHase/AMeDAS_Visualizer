@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   ],
   
   app: {
-    baseURL: './',
+    baseURL: process.env.GITHUB_PAGES ? '/AMeDAS_Visualizer/' : '/',
 
     head: {
       title: 'アメダスマップ | 全国のアメダスデータを可視化',
