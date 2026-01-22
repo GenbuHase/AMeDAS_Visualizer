@@ -249,16 +249,14 @@ const flyToPoint = (lat: number, lon: number, code: string) => {
 }
 
 // グローバル関数として公開（ポップアップから呼ばれる）
-if (process.client) {
-  (window as any).toggleFavorite = (code: string) => {
-    toggleFavorite(code)
-    currentPopupCode = code
-    renderMap()
-  }
-  
-  (window as any).flyToPoint = (lat: number, lon: number, code: string) => {
-    flyToPoint(lat, lon, code)
-  }
+(window as any).toggleFavorite = (code: string) => {
+  toggleFavorite(code)
+  currentPopupCode = code
+  renderMap()
+}
+
+(window as any).flyToPoint = (lat: number, lon: number, code: string) => {
+  flyToPoint(lat, lon, code)
 }
 </script>
 

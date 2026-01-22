@@ -5,27 +5,23 @@ export const useFavorites = () => {
 
   // LocalStorageから読み込み
   const loadFavorites = () => {
-    if (process.client) {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY)
-        if (stored) {
-          favorites.value = JSON.parse(stored).map(String)
-        }
-      } catch (e) {
-        console.error('Failed to load favorites:', e)
-        favorites.value = []
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        favorites.value = JSON.parse(stored).map(String)
       }
+    } catch (e) {
+      console.error('Failed to load favorites:', e)
+      favorites.value = []
     }
   }
 
   // LocalStorageに保存
   const saveFavorites = () => {
-    if (process.client) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites.value))
-      } catch (e) {
-        console.error('Failed to save favorites:', e)
-      }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites.value))
+    } catch (e) {
+      console.error('Failed to save favorites:', e)
     }
   }
 
@@ -49,7 +45,7 @@ export const useFavorites = () => {
   }
 
   // 初期化時に読み込み
-  if (process.client) {
+  if (favorites.value.length === 0) {
     loadFavorites()
   }
 

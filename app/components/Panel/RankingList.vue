@@ -45,7 +45,7 @@ const formatValue = (val: number | null) => {
 }
 
 const flyToPoint = (item: RankingItem) => {
-  if (process.client && (window as any).flyToPoint) {
+  if ((window as any).flyToPoint) {
     (window as any).flyToPoint(item.lat, item.lon, item.code)
   }
 }
