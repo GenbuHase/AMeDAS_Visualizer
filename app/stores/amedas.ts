@@ -5,6 +5,7 @@ export const useAmedasStore = defineStore('amedas', {
   state: () => ({
     currentDataType: 'temp' as DataType,
     isFavoriteMode: false,
+    sortAscending: null as boolean | null, // null = デフォルト（データタイプの設定に従う）
     currentGeoData: null as FeatureCollection | null,
     amedasStations: null as Stations | null,
     observationTime: null as string | null,
@@ -17,6 +18,16 @@ export const useAmedasStore = defineStore('amedas', {
     currentTypeConfig(state) {
       const { DATA_TYPES } = useDataTypes()
       return DATA_TYPES[state.currentDataType]
+    },
+
+    // 現在のソート順（降順かどうか）
+    isSortDescending(state): boolean {
+      // ユーザーが明示的に設定している場合はその設定を使用
+      if (state.sortAscending !== null) {
+        return !state.sortAscending
+      }
+      // デフォルトはデータタイプの設定に従う
+      return this.currentTypeConfig.sortDesc
     },
 
     // フィルタリングされたFeatures
@@ -72,9 +83,10 @@ export const useAmedasStore = defineStore('amedas', {
           return true
         })
       
-      // 並び替え
+      // 並び替え（ユーザー設定またはデフォルト設定に従う）
+      const sortDesc = this.isSortDescending
       items.sort((a, b) => {
-        if (typeConfig.sortDesc) return (b.val || 0) - (a.val || 0)
+        if (sortDesc) return (b.val || 0) - (a.val || 0)
         return (a.val || 0) - (b.val || 0)
       })
       
@@ -82,7 +94,7 @@ export const useAmedasStore = defineStore('amedas', {
       if (state.isFavoriteMode) {
         return items.filter(item => isFavorite(item.code))
       } else {
-        return items.slice(0, 10)
+        return items.slice(0, 30)
       }
     }
   },
@@ -133,6 +145,17 @@ export const useAmedasStore = defineStore('amedas', {
 
     setMode(isFavorite: boolean) {
       this.isFavoriteMode = isFavorite
+    },
+
+    // ソート順を切り替え
+    toggleSortOrder() {
+      const currentDesc = this.isSortDescending
+      this.sortAscending = currentDesc // 降順だったら昇順に、昇順だったら降順に
+    },
+
+    // ソート順をデフォルトにリセット
+    resetSortOrder() {
+      this.sortAscending = null
     },
 
     // データ読み込み
