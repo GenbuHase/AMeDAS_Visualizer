@@ -5,13 +5,19 @@
       class="absolute top-4 left-4 right-4 md:right-auto md:w-96 info-panel rounded-lg shadow-xl overflow-hidden transition-all duration-300 flex flex-col max-h-[calc(100dvh-2rem)]">
       <!-- ヘッダー -->
       <header
-        class="panel-header p-4 flex justify-between items-center cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors flex-none"
+        class="panel-header p-4 flex items-center justify-between cursor-pointer border-b border-gray-100 hover:bg-gray-50 transition-colors flex-none"
         @click="togglePanel">
         <h1 class="text-xl font-bold text-gray-800 m-0">🗾 アメダスマップ</h1>
-        <button class="text-gray-500 hover:text-gray-700 font-bold transform transition-transform duration-300 p-1"
-          :class="{ 'rotate-[-90deg]': !isPanelOpen }">
-          ▼
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- パネルが閉じているときに現在のデータ種類を表示 -->
+          <span v-if="!isPanelOpen && currentTypeConfig" class="text-sm text-gray-600">
+            {{ currentTypeConfig.icon }} {{ currentTypeConfig.name }}
+          </span>
+          <span class="text-gray-500 hover:text-gray-700 font-bold transform transition-transform duration-300"
+            :class="{ 'rotate-[-90deg]': !isPanelOpen }">
+            ▼
+          </span>
+        </div>
       </header>
 
       <!-- パネルコンテンツ -->
@@ -47,8 +53,10 @@
 <script setup lang="ts">
 import { useMediaQuery } from '@vueuse/core'
 import { useAmedasStore } from '~/stores/amedas'
+import { storeToRefs } from 'pinia'
 const isMobile = useMediaQuery('(max-width: 767px)')
 const store = useAmedasStore()
+const { currentTypeConfig } = storeToRefs(store)
 const isPanelOpen = ref(!isMobile.value)
 
 const togglePanel = () => {
