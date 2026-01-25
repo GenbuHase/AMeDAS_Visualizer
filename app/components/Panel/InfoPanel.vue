@@ -34,6 +34,14 @@
           </p>
         </div>
 
+        <button
+          @click="handleRefresh"
+          :disabled="store.isLoading"
+          class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ store.isLoading ? '読み込み中...' : 'データを更新' }}
+        </button>
+
         <PanelDataTypeSelect />
         <PanelRankingList />
         <PanelLegend />
@@ -42,14 +50,6 @@
         <div class="border-t mt-4 pt-4 text-xs text-gray-500">
           データ出典: <a href="https://www.jma.go.jp/" target="_blank" class="underline hover:text-blue-600">気象庁</a>
         </div>
-
-        <button
-          @click="handleRefresh"
-          :disabled="store.isLoading"
-          class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200 shadow hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {{ store.isLoading ? '読み込み中...' : 'データを更新' }}
-        </button>
       </article>
     </aside>
   </div>
