@@ -9,8 +9,13 @@ export const useAmedasData = () => {
   const route = useRoute()
   const TEST_MODE = route.query.test === 'true'
 
-  // プロキシ経由でデータ取得
-  const fetchWithProxy = async (url: string) => {
+  /**
+   * プロキシ経由でデータを取得する
+   * 
+   * @param url 接続先URL
+   * @returns 取得されたデータ
+   */
+  const fetchWithProxy = async (url: string): Promise<any> => {
     if (TEST_MODE) {
       console.log(`[Test Mode] Fetching: ${url}`)
       const response = await fetch(url)
@@ -35,7 +40,11 @@ export const useAmedasData = () => {
     }
   }
 
-  // 観測所データ取得
+  /**
+   * 観測所データを取得する
+   * 
+   * @returns 観測所データ
+   */
   const fetchStations = async (): Promise<Stations> => {
     const url = TEST_MODE 
       ? '/test_data/amedastable.json'
@@ -44,7 +53,11 @@ export const useAmedasData = () => {
     return await fetchWithProxy(url)
   }
 
-  // 最新時刻取得 (その他のデータ用)
+  /**
+   * 最新時刻を取得する
+   * 
+   * @returns 最新時刻
+   */
   const getLatestAmedasTime = async (): Promise<Date> => {
     const url = TEST_MODE
       ? '/test_data/latest_time.txt'
@@ -57,18 +70,25 @@ export const useAmedasData = () => {
     return new Date(text.trim())
   }
 
-  // 全国マップデータ取得 (JSON形式)
-  const fetchAmedasMapData = async (dateObj: Date): Promise<AmedasMapData> => {
+  /**
+   * 全国マップデータを取得する
+   * 
+   * @param date 取得したいデータの時刻
+   * @param isHourly 正時（00分）のデータを取得するかどうか
+   * @returns 全国マップデータ
+   */
+  const fetchAmedasMapData = async (date: Date, isHourly: boolean = false): Promise<AmedasMapData> => {
     if (TEST_MODE) {
       return (await fetch('/test_data/map_data.json')).json()
     }
 
     const pad = (n: number) => n.toString().padStart(2, '0')
-    const yyyy = dateObj.getFullYear()
-    const mm = pad(dateObj.getMonth() + 1)
-    const dd = pad(dateObj.getDate())
-    const hh = pad(dateObj.getHours())
-    const mi = pad(Math.floor(dateObj.getMinutes() / 10) * 10)
+    const yyyy = date.getFullYear()
+    const mm = pad(date.getMonth() + 1)
+    const dd = pad(date.getDate())
+    const hh = pad(date.getHours())
+    // isHourlyがtrueの場合は正時（00分）を使用
+    const mi = isHourly ? '00' : pad(Math.floor(date.getMinutes() / 10) * 10)
     const ss = '00'
     
     const timeStr = `${yyyy}${mm}${dd}${hh}${mi}${ss}`
@@ -77,7 +97,11 @@ export const useAmedasData = () => {
     return await fetchWithProxy(url)
   }
 
-  // 積雪深の最新時刻データ取得
+  /**
+   * 最新時刻を取得する(積雪深)
+   * 
+   * @returns 最新時刻
+   */
   const getLatestSnowTimeData = async (): Promise<SnowTimeData> => {
     const url = TEST_MODE
       ? '/test_data/targetTimes.json'
@@ -94,7 +118,12 @@ export const useAmedasData = () => {
     throw new Error('Valid snow data (amds_snowd) not found in targetTimes')
   }
 
-  // GeoJSONデータ取得 (積雪深用)
+  /**
+   * 積雪深のGeoJSONデータを取得する
+   * 
+   * @param timeData 時刻データ
+   * @returns GeoJSONデータ
+   */
   const fetchSnowGeoJSON = async (timeData: SnowTimeData): Promise<FeatureCollection> => {
     const { basetime, validtime } = timeData
     let url = `${JMA_TILE_BASE}/${basetime}/none/${validtime}/surf/amds_snowd/data.geojson`
@@ -106,7 +135,12 @@ export const useAmedasData = () => {
     return await fetchWithProxy(url)
   }
 
-  // UTC文字列をJST文字列に変換
+  /**
+   * UTC文字列をJST文字列に変換する
+   * 
+   * @param dateStr UTC文字列
+   * @returns JST文字列
+   */
   const formatUtcToJst = (dateStr: string): string => {
     if (!dateStr || dateStr.length < 12) return '--/-- --:--'
     

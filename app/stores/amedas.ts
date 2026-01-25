@@ -190,12 +190,17 @@ export const useAmedasStore = defineStore('amedas', {
           // その他: JSON APIを使用
           const latestTime = await getLatestAmedasTime()
           
-          // 時刻表示
-          const pad = (n: number) => n.toString().padStart(2, '0')
-          this.observationTime = `${latestTime.getFullYear()}/${pad(latestTime.getMonth()+1)}/${pad(latestTime.getDate())} ${pad(latestTime.getHours())}:${pad(latestTime.getMinutes())}`
+          // 降雪量データ（snow6h, snow12h, snow24h）は1時間毎のデータにのみ含まれる
+          const snowfallTypes = ['snow6h', 'snow12h', 'snow24h']
+          const useHourly = snowfallTypes.includes(this.currentDataType)
           
-          // データ取得
-          const mapData = await fetchAmedasMapData(latestTime)
+          // 時刻表示（正時データ使用時は分を00に）
+          const pad = (n: number) => n.toString().padStart(2, '0')
+          const displayMinutes = useHourly ? '00' : pad(latestTime.getMinutes())
+          this.observationTime = `${latestTime.getFullYear()}/${pad(latestTime.getMonth()+1)}/${pad(latestTime.getDate())} ${pad(latestTime.getHours())}:${displayMinutes}`
+          
+          // データ取得（降雪量の場合は正時データを使用）
+          const mapData = await fetchAmedasMapData(latestTime, useHourly)
           
           // GeoJSONに変換
           const features: Feature[] = []
