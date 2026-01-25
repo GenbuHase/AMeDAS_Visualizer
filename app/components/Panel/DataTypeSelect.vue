@@ -7,10 +7,17 @@
       class="w-full p-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       <option value="temp">🌡️ 気温</option>
-      <option value="precipitation1h">☔ 降水量（1時間）</option>
       <option value="wind">🍃 風速</option>
+      <option value="precipitation10m">🌧️ 降水量（10分間）</option>
+      <option value="precipitation1h">🌧️ 降水量（1時間）</option>
+      <option value="precipitation3h">🌧️ 降水量（3時間）</option>
+      <option value="precipitation24h">🌧️ 降水量（24時間）</option>
       <option value="snow">⛄️ 積雪深</option>
+      <option value="snow6h">❄️ 降雪量（6時間）</option>
+      <option value="snow12h">❄️ 降雪量（12時間）</option>
+      <option value="snow24h">❄️ 降雪量（24時間）</option>
       <option value="humidity">💧 湿度</option>
+      <option value="sun1h">☀️ 日照時間（1時間）</option>
     </select>
   </div>
 </template>

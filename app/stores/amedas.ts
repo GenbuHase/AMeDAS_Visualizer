@@ -213,11 +213,18 @@ export const useAmedasStore = defineStore('amedas', {
                 kjName: station.kjName,
                 knName: station.knName,
                 temp: data.temp ? data.temp[0] : undefined,
-                precipitation1h: data.precipitation1h ? data.precipitation1h[0] : undefined,
                 wind: data.wind ? data.wind[0] : undefined,
                 windDirection: data.windDirection ? data.windDirection[0] : undefined,
+                precipitation10m: data.precipitation10m ? data.precipitation10m[0] : undefined,
+                precipitation1h: data.precipitation1h ? data.precipitation1h[0] : undefined,
+                precipitation3h: data.precipitation3h ? data.precipitation3h[0] : undefined,
+                precipitation24h: data.precipitation24h ? data.precipitation24h[0] : undefined,
+                snow: data.snow ? data.snow[0] : undefined,
+                snow6h: data.snow6h ? data.snow6h[0] : undefined,
+                snow12h: data.snow12h ? data.snow12h[0] : undefined,
+                snow24h: data.snow24h ? data.snow24h[0] : undefined,
                 humidity: data.humidity ? data.humidity[0] : undefined,
-                snow: data.snow ? data.snow[0] : undefined
+                sun1h: data.sun1h ? data.sun1h[0] : undefined
               }
               
               features.push({

@@ -1,7 +1,19 @@
 // TypeScript型定義
 
 // データタイプ
-export type DataType = 'temp' | 'precipitation1h' | 'wind' | 'snow' | 'humidity'
+export type DataType = 
+  | 'temp'
+  | 'wind'
+  | 'precipitation10m'
+  | 'precipitation1h'
+  | 'precipitation3h'
+  | 'precipitation24h'
+  | 'snow'
+  | 'snow6h'
+  | 'snow12h'
+  | 'snow24h'
+  | 'humidity'
+  | 'sun1h'
 
 // 色設定
 export interface ColorConfig {
@@ -30,12 +42,20 @@ export interface FeatureProperties {
   name?: string
   // データ値
   temp?: number | [number, number]
-  precipitation1h?: number | [number, number]
   wind?: number | [number, number]
   windDirection?: number | [number, number]
-  humidity?: number | [number, number]
+  precipitation10m?: number | [number, number]
+  precipitation1h?: number | [number, number]
+  precipitation3h?: number | [number, number]
+  precipitation24h?: number | [number, number]
   snow?: number | [number, number]
   snowd?: number // GeoJSON (積雪深)
+  snow1h?: number | [number, number]
+  snow6h?: number | [number, number]
+  snow12h?: number | [number, number]
+  snow24h?: number | [number, number]
+  humidity?: number | [number, number]
+  sun1h?: number | [number, number]
   val?: number
 }
 
@@ -94,11 +114,19 @@ export interface SnowTimeData {
 export interface AmedasMapData {
   [code: string]: {
     temp?: [number, number]
-    precipitation1h?: [number, number]
     wind?: [number, number]
     windDirection?: [number, number]
-    humidity?: [number, number]
+    precipitation10m?: [number, number]
+    precipitation1h?: [number, number]
+    precipitation3h?: [number, number]
+    precipitation24h?: [number, number]
     snow?: [number, number]
+    snow1h?: [number, number]
+    snow6h?: [number, number]
+    snow12h?: [number, number]
+    snow24h?: [number, number]
+    humidity?: [number, number]
+    sun1h?: [number, number]
   }
 }
 
